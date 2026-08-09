@@ -1,0 +1,66 @@
+/**
+ * All of the CSS for your admin-specific functionality should be
+ * included in this file.
+ */
+
+ /* Style the tab */
+
+.webix-feed-meta-wrapper {
+    padding-top: 5px;
+}
+.tab {
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+}
+
+.tab a {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+    font-size: 14px;
+    color: #23282d;
+}
+
+
+.tab a:hover {
+    background-color: #ddd;
+}
+
+
+.tab a.active {
+    background-color: #ccc;
+}
+
+
+.tabcontent {
+    display: none;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-top: none;
+}
+.tabcontent.active {
+    display: block !important;
+}
+
+.admin-webix-feed-form-item * {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+}
+
+.admin-webix-feed-label label {
+    font-weight: bolder;
+    display: block;
+}
+
+.webix-feed-header{
+    width: 100%;
+    height: 70px;
+    background: url('../../images/webix-logo.png') no-repeat;
+    background-size: contain;
+}
