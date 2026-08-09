@@ -39,3 +39,10 @@ Optimerings- og sikkerhedsrelease. Ingen ændringer i udseende eller markup — 
 - Ingen funktionelle ændringer ift. 3.1.37 — version-bump så eksisterende 3.1.37-installationer tilbydes opdateringen og auto-update-kæden kan verificeres ende-til-ende.
 - Plugin-identitet omdøbt til `webix-feed-no-rangeslider` (mappe, updater-URL, menu-sti). Nyt repo: webixaps/webix-feed-no-rangeslider.
 - Migrationsvagt: aktiveres det nye plugin, mens det gamle "webix-feed" stadig er aktivt, bailer det med en admin-advarsel i stedet for "Cannot redeclare"-fatal.
+
+---
+
+# Webix Feed 3.1.39 (2026-08-09) — HOTFIX
+
+- **3.1.38 var reelt død:** migrationsvagten tjekkede `function_exists('run_webix_feed')`, men PHP definerer filens egne funktioner allerede ved indlæsning — vagten ramte altid sig selv, pluginnet gik i tomgang, og feedet forsvandt fra siderne. Vagten tjekker nu KUN konstanten `WEBIX_FEED_VERSION` (defineres ved kørsel og kun af det gamle plugin).
+- Load-path-regressionstest tilføjet: frisk indlæsning SKAL registrere alle 3 shortcodes; legacy-scenarie skal baile med admin-notice. (3.1.38 fejler testen; 3.1.39 består.)

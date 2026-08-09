@@ -16,7 +16,7 @@
  * Plugin Name:       Webix Feed without rangeslider
  * Plugin URI:        https://github.com/webixaps/webix-feed-no-rangeslider
  * Description:       The New Version of Webix comparison feed makes it easy to create your own comparison sites while always keeping your data updated. Currently we have feeds on the Danish, Swedish, Norwegian and Finnish markets across multiple sectors. With auto update from GitHub.
- * Version:           3.1.38
+ * Version:           3.1.39
  * Author:            Webix Aps
  * Author URI:        https://webixaps.com/
  * License:           GPL-2.0+
@@ -37,8 +37,14 @@ if ( ! defined( 'WPINC' ) ) {
  * er aktivt, er dets globale funktioner og klasser allerede indlæst — at loade
  * dette plugin oveni ville give "Cannot redeclare"-fatals. Vi bailer derfor
  * stille med en admin-advarsel. Deaktivér det gamle plugin, så tager dette over.
+ *
+ * VIGTIGT (lærepenge fra 3.1.38): tjek KUN på konstanten. Konstanter defineres
+ * ved KØRSEL (dvs. kun hvis det gamle plugin faktisk kørte før os), mens
+ * funktioner i DENNE fil er defineret allerede ved indlæsning — et
+ * function_exists()-tjek på egne funktionsnavne rammer derfor altid sig selv
+ * og lagde pluginnet permanent i tomgang.
  */
-if ( defined( 'WEBIX_FEED_VERSION' ) || function_exists( 'run_webix_feed' ) ) {
+if ( defined( 'WEBIX_FEED_VERSION' ) ) {
 	add_action( 'admin_notices', function () {
 		echo '<div class="notice notice-error"><p><strong>Webix Feed (no rangeslider):</strong> det gamle "Webix Feed"-plugin er stadig aktivt. Deaktivér det under Plugins — kun ét af dem må være aktivt.</p></div>';
 	} );
@@ -50,7 +56,7 @@ if ( defined( 'WEBIX_FEED_VERSION' ) || function_exists( 'run_webix_feed' ) ) {
  * Start at version 3.1.33 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'WEBIX_FEED_VERSION', '3.1.38' );
+define( 'WEBIX_FEED_VERSION', '3.1.39' );
 define( 'WEBIX_DIRECTORY', 'webix-feed-no-rangeslider/');
 
 /**
