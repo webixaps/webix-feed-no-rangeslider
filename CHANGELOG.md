@@ -46,3 +46,16 @@ Optimerings- og sikkerhedsrelease. Ingen ændringer i udseende eller markup — 
 
 - **3.1.38 var reelt død:** migrationsvagten tjekkede `function_exists('run_webix_feed')`, men PHP definerer filens egne funktioner allerede ved indlæsning — vagten ramte altid sig selv, pluginnet gik i tomgang, og feedet forsvandt fra siderne. Vagten tjekker nu KUN konstanten `WEBIX_FEED_VERSION` (defineres ved kørsel og kun af det gamle plugin).
 - Load-path-regressionstest tilføjet: frisk indlæsning SKAL registrere alle 3 shortcodes; legacy-scenarie skal baile med admin-notice. (3.1.38 fejler testen; 3.1.39 består.)
+
+---
+
+# Webix Feed 3.1.41 (2026-11-22) — § 11 d markedsføringsloven
+
+- **Feltet "Godkendelse" fjernes fra feedet** (gældende regler fra 20.11.2026: ingen fremhævning af, hvor let/hurtigt man får kredit). Pluginnet filtrerer Laravel-HTML'en i `fetch_feed_html()`:
+  - kort (desktop + mobil): hele `<li>` med "Godkendelse: …" fjernes — ingen tom række
+  - tabel, mobil: `tm-row-inner`-blokken "Godkendelse" fjernes
+  - tabel, desktop: kolonnen "Godkendelse" fjernes i overskrift og alle rækker
+- Gælder alle værdier (Acceptabel, Moderat, Høj …). Rammer kun den danske etiket; SE/NO/FI-feeds er urørte.
+- Filtret køres på frisk, cachet og stale HTML → virker straks efter opdatering, også uden at tømme cachen.
+- Intet andet ændret: renter, ÅOP, eksempler, advarselstekst, øvrige punkter, CTA og rækkefølge er byte-identiske.
+- Testet: 30-punkts stub-harness (alle tre markup-varianter, falske træffere, 600 KB-svar, alle cache-stier) + krydstjek mod live-svar fra ai.webixaps.com (6 varianter, 0 forekomster tilbage).

@@ -16,7 +16,7 @@
  * Plugin Name:       Webix Feed without rangeslider
  * Plugin URI:        https://github.com/webixaps/webix-feed-no-rangeslider
  * Description:       The New Version of Webix comparison feed makes it easy to create your own comparison sites while always keeping your data updated. Currently we have feeds on the Danish, Swedish, Norwegian and Finnish markets across multiple sectors. With auto update from GitHub.
- * Version:           3.1.40
+ * Version:           3.1.41
  * Author:            Webix Aps
  * Author URI:        https://webixaps.com/
  * License:           GPL-2.0+
@@ -56,7 +56,7 @@ if ( defined( 'WEBIX_FEED_VERSION' ) ) {
  * Start at version 3.1.33 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'WEBIX_FEED_VERSION', '3.1.40' );
+define( 'WEBIX_FEED_VERSION', '3.1.41' );
 define( 'WEBIX_DIRECTORY', 'webix-feed-no-rangeslider/');
 
 /**
