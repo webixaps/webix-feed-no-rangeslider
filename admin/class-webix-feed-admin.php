@@ -377,8 +377,92 @@ class Webix_Feed_Admin
      * - Ved API-fejl (WP_Error, ikke-200, tom body) serveres senest kendte HTML
      *   (op til 48 timer gammel) i stedet for en fejltekst, så søgemaskiner og
      *   besøgende aldrig ser rå fejlbeskeder.
+     * - Al HTML (frisk, cachet og stale) sendes gennem strip_approval_rating(),
+     *   så ændringen virker straks — også for allerede cachede varianter.
      */
     private function fetch_feed_html($endpoint, array $parameters)
+    {
+        return self::strip_approval_rating($this->fetch_feed_html_raw($endpoint, $parameters));
+    }
+
+    /**
+     * Fjerner feltet "Godkendelse" fra feed-HTML'en (markedsføringslovens § 11 d,
+     * gældende fra 20.11.2026: ingen fremhævning af, hvor let/hurtigt man får kredit).
+     *
+     * Dækker de tre varianter, Laravel leverer:
+     *  1) Kort (desktop+mobil):  <li ...><p class="text-wrapper">Godkendelse: X</p></li>
+     *  2) Tabel, mobil:          <div class="tm-row-inner"> label "Godkendelse" + værdi </div>
+     *  3) Tabel, desktop:        kolonnen med <th>Godkendelse</th> + tilsvarende <td> i hver række
+     *
+     * Rammer kun den danske etiket "Godkendelse". Alt andet er urørt. Fejler et
+     * regex (fx backtrack-grænse), returneres HTML'en for det trin uændret.
+     */
+    public static function strip_approval_rating($html)
+    {
+        if (!is_string($html) || false === stripos($html, 'Godkendelse')) {
+            return $html;
+        }
+
+        $patterns = array(
+            '~<li\b[^>]*>\s*<p\b[^>]*>\s*Godkendelse\s*:[^<]*</p>\s*</li>~iu',
+            '~[ \t]*<div\b[^>]*\bclass="[^"]*\btm-row-inner\b[^"]*"[^>]*>\s*<div\b[^>]*\bclass="[^"]*\btm-label\b[^"]*"[^>]*>\s*Godkendelse\s*</div>\s*<div\b[^>]*\bclass="[^"]*\btm-value\b[^"]*"[^>]*>[^<]*</div>\s*</div>(?:\r?\n)?~iu',
+        );
+        foreach ($patterns as $pattern) {
+            $out = preg_replace($pattern, '', $html);
+            if (null !== $out) {
+                $html = $out;
+            }
+        }
+
+        $out = preg_replace_callback('~<table\b[^>]*>.*?</table>~is', array(__CLASS__, 'strip_approval_column'), $html);
+        if (null !== $out) {
+            $html = $out;
+        }
+
+        return $html;
+    }
+
+    /**
+     * Fjerner "Godkendelse"-kolonnen fra én <table>. Kun rækker med præcis samme
+     * antal celler som overskriftsrækken ændres (colspan-rækker o.l. røres ikke).
+     */
+    private static function strip_approval_column($m)
+    {
+        $table    = $m[0];
+        $cell_re  = '~<(t[hd])\b[^>]*>.*?</\1>~is';
+        $col      = -1;
+        $n_header = 0;
+
+        if (!preg_match_all('~<tr\b[^>]*>(.*?)</tr>~is', $table, $rows)) {
+            return $table;
+        }
+        foreach ($rows[1] as $row) {
+            if (preg_match_all($cell_re, $row, $cells) && in_array('th', array_map('strtolower', $cells[1]), true)) {
+                foreach ($cells[0] as $i => $cell) {
+                    if ('godkendelse' === strtolower(trim(html_entity_decode(strip_tags($cell), ENT_QUOTES, 'UTF-8')))) {
+                        $col      = $i;
+                        $n_header = count($cells[0]);
+                        break 2;
+                    }
+                }
+            }
+        }
+        if ($col < 0) {
+            return $table;
+        }
+
+        $out = preg_replace_callback('~(<tr\b[^>]*>)(.*?)(</tr>)~is', function ($r) use ($cell_re, $col, $n_header) {
+            if (!preg_match_all($cell_re, $r[2], $cells, PREG_OFFSET_CAPTURE) || count($cells[0]) !== $n_header) {
+                return $r[0];
+            }
+            $cell = $cells[0][$col];
+            return $r[1] . substr_replace($r[2], '', $cell[1], strlen($cell[0])) . $r[3];
+        }, $table);
+
+        return (null === $out) ? $table : $out;
+    }
+
+    private function fetch_feed_html_raw($endpoint, array $parameters)
     {
         $url       = $endpoint . '?' . http_build_query($parameters);
         $cache_ttl = (int) apply_filters('webix_feed_cache_ttl', 10 * MINUTE_IN_SECONDS);
