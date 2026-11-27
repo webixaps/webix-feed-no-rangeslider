@@ -382,7 +382,39 @@ class Webix_Feed_Admin
      */
     private function fetch_feed_html($endpoint, array $parameters)
     {
-        return self::strip_approval_rating($this->fetch_feed_html_raw($endpoint, $parameters));
+        return self::decorate_loan_warning(self::strip_approval_rating($this->fetch_feed_html_raw($endpoint, $parameters)));
+    }
+
+    /**
+     * Sætter et info-ikon foran den lovpligtige advarsel og fremhæver "Advarsel!" med fed.
+     *
+     * Før:  <p class="custom-forry-text" …>Advarsel! Det koster penge at låne penge</p>
+     * Efter: <p class="custom-forry-text" …><svg …/> <strong>Advarsel!</strong> Det koster penge at låne penge</p>
+     *
+     * Teksten er uændret (ikonet er aria-hidden og har ingen tekst). Rammer kun et
+     * <p> med klassen custom-forry-text, hvis indhold er præcis advarslen, så det
+     * er idempotent og rører intet, hvis Laravel selv ændrer markuppen senere.
+     */
+    public static function decorate_loan_warning($html)
+    {
+        if (!is_string($html) || false === strpos($html, 'custom-forry-text')) {
+            return $html;
+        }
+
+        $icon = '<svg class="webix-warning-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"'
+              . ' style="display:inline-block;vertical-align:-3px;margin-right:5px;">'
+              . '<circle cx="8" cy="8" r="8" fill="currentColor"/>'
+              . '<circle cx="8" cy="4.6" r="1.15" fill="#fff"/>'
+              . '<rect x="7" y="6.8" width="2" height="5.4" rx="1" fill="#fff"/>'
+              . '</svg>';
+
+        $out = preg_replace(
+            '~(<p\b[^>]*\bclass="[^"]*\bcustom-forry-text\b[^"]*"[^>]*>)\s*Advarsel!(\s+Det koster penge at låne penge\.?)\s*(</p>)~u',
+            '$1' . $icon . '<strong>Advarsel!</strong>$2$3',
+            $html
+        );
+
+        return (null === $out) ? $html : $out;
     }
 
     /**
