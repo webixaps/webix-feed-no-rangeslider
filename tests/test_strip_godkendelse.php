@@ -126,5 +126,33 @@ check('fejlkommentar uændret', $m->invoke($admin, 'https://ai.webixaps.com/get_
 $GLOBALS['TTL'] = 0; $GLOBALS['T'] = array(); $GLOBALS['HTTP'] = array('code' => 200, 'body' => tm_card(true));
 check('cache slået fra (TTL 0): filtreres stadig', $m->invoke($admin, 'https://ai.webixaps.com/get_campaigns', $params) === trim(tm_card(false)) && $GLOBALS['T'] === array());
 
+
+echo "7) Advarsel: ikon + fed 'Advarsel!' (decorate_loan_warning)\n";
+function deco($h) { return Webix_Feed_Admin::decorate_loan_warning($h); }
+$W = 'Advarsel! Det koster penge at låne penge';
+$live = '<p class="custom-forry-text" style="color:#000;font-size:14px;line-height:1.35;">' . $W . '</p>';
+$o = deco($live);
+check('ikon (svg, aria-hidden) indsat først i <p>', strpos($o, '<p class="custom-forry-text" style="color:#000;font-size:14px;line-height:1.35;"><svg class="webix-warning-icon"') === 0 && strpos($o, 'aria-hidden="true"') !== false);
+check('"Advarsel!" i <strong>, resten uændret', strpos($o, '</svg><strong>Advarsel!</strong> Det koster penge at låne penge</p>') !== false);
+check('synlig tekst byte-identisk med lovteksten', html_entity_decode(strip_tags($o), ENT_QUOTES, 'UTF-8') === $W);
+check('idempotent (2. kørsel ændrer intet)', deco($o) === $o);
+check('med punktum', strpos(deco('<p class="custom-forry-text">' . $W . '.</p>'), '<strong>Advarsel!</strong> Det koster penge at låne penge.</p>') !== false);
+check('whitespace/newlines omkring tekst', strpos(deco("<p class=\"x custom-forry-text\">\r\n  $W\r\n </p>"), '<strong>Advarsel!</strong> Det koster penge at låne penge</p>') !== false);
+$feed = str_repeat('<div class="card">' . $live . '</div>', 20) . '<table class="campaign-table"><tr><td>x</td></tr></table>' . $live;
+$o = deco($feed);
+check('21 advarsler → 21 ikoner, 21 × lovtekst', substr_count($o, 'webix-warning-icon') === 21 && substr_count(strip_tags($o), $W) === 21);
+$other = array(
+  '<p class="custom-forry-text">14 dages fortrydelsesret</p>',
+  '<p class="text-wrapper">' . $W . '</p>',
+  '<p class="custom-forry-text">Varning! Det kostar pengar att låna pengar</p>',
+  '<div class="entry-content"><p>' . $W . '</p></div>',
+);
+foreach ($other as $x) { check('urørt: ' . strip_tags($x), deco($x) === $x); }
+check('null/false uændret', deco(null) === null && deco(false) === false);
+check('Godkendelse-filter + ikon sammen', ($r = Webix_Feed_Admin::decorate_loan_warning(Webix_Feed_Admin::strip_approval_rating(str_replace('<p>Advarsel! Det koster penge at låne penge</p>', $live, card('Moderat'))))) && stripos($r, 'Godkendelse') === false && substr_count($r, 'webix-warning-icon') === 1);
+
+$GLOBALS['TTL'] = 600; $GLOBALS['T'] = array(); $GLOBALS['HTTP'] = array('code' => 200, 'body' => '<div>' . li('Moderat') . $live . '</div>');
+$r = $m->invoke($admin, 'https://ai.webixaps.com/get_campaigns', $params);
+check('fetch_feed_html: Godkendelse væk + ikon på', stripos($r, 'Godkendelse') === false && substr_count($r, 'webix-warning-icon') === 1);
 echo "\n$pass bestået, $fail fejlet\n";
 exit($fail ? 1 : 0);
