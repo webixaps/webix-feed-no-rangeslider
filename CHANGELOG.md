@@ -59,3 +59,12 @@ Optimerings- og sikkerhedsrelease. Ingen ændringer i udseende eller markup — 
 - Filtret køres på frisk, cachet og stale HTML → virker straks efter opdatering, også uden at tømme cachen.
 - Intet andet ændret: renter, ÅOP, eksempler, advarselstekst, øvrige punkter, CTA og rækkefølge er byte-identiske.
 - Testet: 30-punkts stub-harness (alle tre markup-varianter, falske træffere, 600 KB-svar, alle cache-stier) + krydstjek mod live-svar fra ai.webixaps.com (6 varianter, 0 forekomster tilbage).
+
+---
+
+# Webix Feed 3.1.42 (2026-11-27) — ikon ved lovpligtig advarsel
+
+- Den lovpligtige advarsel i låne-feedet ("Advarsel! Det koster penge at låne penge") får et info-ikon foran, og "Advarsel!" vises med fed — på kort (desktop + mobil) og under tabeller.
+- Ny `decorate_loan_warning()` i `fetch_feed_html()`. Rammer kun `<p class="custom-forry-text">` hvis indhold er præcis advarslen; ikonet er en inline-SVG (aria-hidden, ingen tekst), så den synlige tekst er byte-identisk med lovteksten. Idempotent.
+- Virker straks efter opdatering, også for cachet feed-HTML. Intet andet ændret.
+- Test: 44/44 (14 nye) + e2e af alle shortcodes; visuelt kontrolleret på laaneportalen.dk (kort + tabel).
